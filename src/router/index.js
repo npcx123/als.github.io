@@ -1,27 +1,51 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+
+import Login from '@/views/login'
+import Layout from '@/views/layout'
+import Home from '@/views/layout/home'
+import Analysis from '@/views/layout/analysis'
+import Community from '@/views/layout/community'
+import User from '@/views/layout/user'
+import Talk from '@/views/talk'
+import About from '@/views/about'
+
+import store from '@/store'
 
 Vue.use(VueRouter)
 
-const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  }
-]
-
 const router = new VueRouter({
-  routes
+  routes: [
+    { path: '/login', component: Login },
+    {
+      path: '/',
+      component: Layout,
+      redirect: '/home',
+      children: [
+        { path: '/home', component: Home },
+        { path: '/analysis', component: Analysis },
+        { path: '/community', component: Community },
+        { path: '/user', component: User }
+      ]
+    },
+    { path: '/talk', component: Talk },
+    { path: '/about', component: About }
+  ]
+})
+
+const authUrl = ['/user']
+router.beforeEach((to, from, next) => {
+  const token = store.getters.token
+  if (!authUrl.includes(to.path)) {
+    next()
+    return
+  }
+
+  if (token) {
+    next()
+  } else {
+    next('/login')
+  }
 })
 
 export default router
